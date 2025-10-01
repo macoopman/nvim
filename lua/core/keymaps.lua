@@ -54,6 +54,8 @@ vim.keymap.set("n", "<leader>x", [[:%s/\<<C-r><C-w>\><C-r><C-w>/gI<Left><Left><L
 -- Make a file executable (only works in linux)
 vim.keymap.set("n", "<leader>x", "<cmd>!chmod +x %<CR>")
 
+-- Maven 
+vim.keymap.set("n", "<leader>mi", ":term mvn clean install<CR>")
 
 --
 vim.keymap.set("n", "<leader><leader>", function() vim.cmd("so") end)

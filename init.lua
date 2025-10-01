@@ -2,7 +2,6 @@ require("core.keymaps")
 require("core.set")
 require("core.lazy")
 
-local augroup = vim.api.nvim_create_autogroup
 local autocmd = vim.api.nvim_create_autocmd
 
 autocmd('LspAttach', {
@@ -36,7 +35,8 @@ autocmd('FileType', {
     callback = function(args)
         -- reference config: https://github.com/bcampolo/nvim-starter-kit/blob/java/.config/nvim/ftplugin/java.lua https://github.com/bcampolo/nvim-starter-kit/blob/java/.config/nvim/ftplugin/java.lua
         -- home win: C:/Users/<username>
-        local home = vim.env.HOME
+        --local home = vim.env.HOME
+        local home = "C:/Users/N76646"
         local jdtls = require('jdtls')
         local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
         local workspace_dir = home .. "/workspace/jdtls-workspace/" .. project_name
@@ -98,7 +98,8 @@ autocmd('FileType', {
             -- 💀
             -- This is the default if not provided, you can remove it. Or adjust as needed.
             -- One dedicated LSP server & client will be started per unique root_dir
-            root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "mvn", "pom.sml" }),
+
+            root_dir = vim.fs.root(0, { ".git", "mvnw", "gradlew" }),
 
         -- Here you can configure eclipse.jdt.ls specific settings
           -- See https://github.com/eclipse/eclipse.jdt.ls/wiki/Running-the-JAVA-LS-server-from-the-command-line#initialize-request
@@ -117,7 +118,7 @@ autocmd('FileType', {
                     name = "JavaSE-1.8",
                     path = home .. "/Workspace/jdk/jdk1.8.0_442",
                   },
-		  { 
+		          {
                     name = "JavaSE-21",
                     path = home .. "/Workspace/jdk/jdk-21.0.2",
                   }
@@ -203,8 +204,8 @@ autocmd('FileType', {
         config["on_attach"] = function(client, bufnr)
           jdtls.setup_dap({ hotcodereplace = "auto" })
           require("jdtls.dap").setup_dap_main_class_configs()
-        end-- Needed for debugging
 
+        end-- Needed for debugging
         -- This starts a new client & server,
         -- or attaches to an existing client & server depending on the `root_dir`.
         jdtls.start_or_attach(config)

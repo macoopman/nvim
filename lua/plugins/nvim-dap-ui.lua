@@ -90,6 +90,24 @@ return {
   },
   config = function (_, opts)
     local dap = require('dap')
+
+    dap.listeners.before.run.dap_java_path_fix = function(session, config)
+
+      print("Running JAVA Fix 1")
+      if config.request == "launch" and config.mainClass and vim.fn.has("win32") then
+        for _, path in ipairs(config.sourcePaths) do
+           print("DEBUG:--------  " .. path)
+           local new_path = path:gsub("\\", "/")
+           print("Running JAVA Fix 2")
+
+           if not new_path:match("file:///") then
+             new_path = "file:///" .. new_path
+           end
+           config.sourcePaths = { new_path }
+        end
+      end
+    end
+
     require('dapui').setup(opts)
 
     -- Customize breakpoint signs
