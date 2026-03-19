@@ -12,6 +12,16 @@ return {
   config = function ()
     require('mason').setup()
 
+    require('mason-tool-installer').setup({
+      -- Install these linters, formatters, debuggers automatically
+      ensure_installed = {
+        'java-debug-adapter',
+        'java-test',
+      },
+    })
+
+    vim.api.nvim_command('MasonToolsInstall')
+
     require('mason-lspconfig').setup({
       -- Install these LSPs automatically
       automatic_enabled = {
@@ -21,54 +31,112 @@ return {
         'lua_ls',
         'jdtls',
         'marksman',
-      }
-    })
-
-    require('mason-tool-installer').setup({
-      -- Install these linters, formatters, debuggers automatically
-      ensure_installed = {
-        'java-debug-adapter',
-        'java-test',
+        'clangd'
       },
-    })
 
-    -- There is an issue with mason-tools-installer running with VeryLazy, since it triggers on VimEnter which has already occurred prior to this plugin loading so we need to call install explicitly
-    -- https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim/issues/39
-    vim.api.nvim_command('MasonToolsInstall')
+      handlers = {
+        function(server)
+          vim.lsp.config(server, {})
+          vim.lsp.enable(server)
+        end,
 
-    local lspconfig = require('lspconfig')
-    local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
-    local lsp_attach = function(client, bufnr)
-      -- Create your keybindings here...
-    end
+        clangd = function()
+          vim.lsp.config('clangd', {
+            filetypes = { "c", "cpp", "h" },
+            init_options = {
+                fallbackFlags = { "-std=c++20" }
+                -- fallbackFlags = { '--std=c89' }
+                -- fallbackFlags = { '--std=c11' }
+            },
+            cmd = {
+                "clangd",
+                "--experimental-modules-support",
+                "--background-index",
+                "--clang-tidy",
+                "--header-insertion=iwyu",
+                "--completion-style=bundled",
+                "--pch-storage=memory",
+                "--log=verbose",
+                "--fallback-style=llvm",
+                "--fallback-style=none"
+             }
+           })
+           vim.lsp.enable('clangd')
+         end,
 
-   require('mason-lspconfig').setup({
-     handlers = {
-       function(server_name)
-        if server_name ~= 'jdtls' then
-          lspconfig[server_name].setup({
-            on_attach = lsp_attach,
-            capabilities = lsp_capabilities,
-          })
-       end
-     end
+        lua_ls = function()
+            vim.lsp.config("lua_ls", {
+              settings = {
+                Lua = {
+                  diagnostics = {
+                    -- Get the language server to recognize the `vim` global
+                    globals = {'vim'},
+                  },
+                },
+              },
+            })
+           vim.lsp.enable('lua_ls')
+        end,
+
      },
-   })
-
-    -- Lua LSP settings
-    lspconfig.lua_ls.setup {
-      settings = {
-        Lua = {
-          diagnostics = {
-            -- Get the language server to recognize the `vim` global
-            globals = {'vim'},
-          },
-        },
-      },
-    }
 
 
+    })
 
+
+    -- local lsp_capabilities = require('cmp_nvim_lsp').default_capabilities()
+    -- local lsp_attach = function(client, bufnr)
+      -- Create your keybindings here...
+    -- end
+
+   -- require('mason-lspconfig').setup({
+   --   handlers = {
+   --     function(server_name)
+   --      if server_name ~= 'jdtls' then
+   --        vim.lsp.config(server_name, {
+   --          on_attach = lsp_attach,
+   --          capabilities = lsp_capabilities,
+   --        })
+   --     end
+   --   end
+   --   },
+   -- })
+   --
+    -- -- Lua LSP settings
+    -- vim.lsp.config("lua_ls", {
+    --   settings = {
+    --     Lua = {
+    --       diagnostics = {
+    --         -- Get the language server to recognize the `vim` global
+    --         globals = {'vim'},
+    --       },
+    --     },
+    --   },
+    -- })
+    --
+    --
+    -- vim.lsp.config('clangd', {
+    --     filetypes = { "c", "cpp", "h" },
+    --     init_options = {
+    --         fallbackFlags = { "-std=c++20" }
+    --         -- fallbackFlags = { '--std=c89' }
+    --         -- fallbackFlags = { '--std=c11' }
+    --     },
+    --     cmd = {
+    --         "clangd",
+    --         "--experimental-modules-support",
+    --         "--background-index",
+    --         "--clang-tidy",
+    --         "--header-insertion=iwyu",
+    --         "--completion-style=bundled",
+    --         "--pch-storage=memory",
+    --         "--log=verbose",
+    --         "--fallback-style=llvm",
+    --         "--fallback-style=none"
+    --
+    --     }
+    -- })
+    --
     -- Globally configure all LSP floating preview popups (like hover, signature help, etc)
     local open_floating_preview = vim.lsp.util.open_floating_preview
     function vim.lsp.util.open_floating_preview(contents, syntax, opts, ...)
@@ -76,10 +144,5 @@ return {
       opts.border = opts.border or "rounded" -- Set border to rounded
       return open_floating_preview(contents, syntax, opts, ...)
     end
-
- 
-
-    -- Additional lua configuration, makes nvim stuff amazing!
-    -- https://github.com/folke/neodev.nvim
 end
 }
